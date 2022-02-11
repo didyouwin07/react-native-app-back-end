@@ -8,15 +8,41 @@ const {
   GraphQLNonNull,
 } = graphql;
 
-var initialData = [
-  {
-    id: "1",
-    title:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry.",
-    content:
-      "Lorem ipsum has been the industry's standard dummy text ever since the 1550s, when an unknown printer took a gallery of type and scrambled it to make a type specimen book.",
-  },
-];
+const mysql = require("mysql");
+
+const connection = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "SecretPass",
+  database: "my_db",
+});
+var initialData = {};
+connection.connect(function (err) {
+  if (err) console.log(err);
+  connection.query(
+    `INSERT INTO homepagedetails (title,content,id) values("Lorem ipsum is simply dummy text of the printing and typesetting industry.","Lorem ipsum has been the industry's standard dummy text ever since the 1550s, when an unknown printer took a gallery of type and scrambled it to make a type specimen book.",1)`,
+    function (error, result) {
+      // console.log(error);
+      if (error) throw error;
+      console.log(result);
+      console.log("Home page details addition success");
+    }
+  );
+  connection.query(`SELECT * FROM homepagedetails WHERE id=1`, function (
+    error,
+    result
+  ) {
+    // console.log(error);
+    if (error) throw error;
+    console.log(result[0].id);
+    initialData = {
+      title: result[0].title,
+      content: result[0].content,
+      id: result[0].id,
+    };
+    console.log("Home page details addition success");
+  });
+});
 
 var contacts = [];
 
@@ -46,7 +72,8 @@ const RootQuery = new GraphQLObjectType({
       type: HomePageDetailsType,
       args: { id: { type: GraphQLID } },
       resolve(parent, args) {
-        return _.find(initialData, { id: args.id });
+        // return _.find(initialData, { id: args.id });
+        return initialData;
       },
     },
   },
@@ -69,8 +96,25 @@ const Mutation = new GraphQLObjectType({
           message: args.message,
           id: contacts.length + 1,
         };
+        var values = [[args.name, args.email, args.message]];
         contacts.push(contact);
+
         console.log(contacts);
+
+        connection.connect(function (err) {
+          if (err) console.log(err);
+          connection.query(
+            "INSERT INTO contactdetails (name, email, message) values (?)",
+            values,
+            function (error, result) {
+              // console.log(error);
+              if (error) throw error;
+              console.log(result);
+              console.log("contact details addition success");
+            }
+          );
+        });
+
         return contact;
       },
     },
