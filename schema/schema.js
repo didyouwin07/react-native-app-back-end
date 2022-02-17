@@ -20,7 +20,7 @@ var initialData = {};
 connection.connect(function (err) {
   if (err) console.log(err);
   connection.query(
-    `INSERT INTO homepagedetails (title,content,id) values("Lorem ipsum is simply dummy text of the printing and typesetting industry.","Lorem ipsum has been the industry's standard dummy text ever since the 1550s, when an unknown printer took a gallery of type and scrambled it to make a type specimen book.",1)`,
+    `INSERT INTO homepagedetails (name,profession,id) values("Vishwas","Software Engineer",1)`,
     function (error, result) {
       // console.log(error);
       if (error) throw error;
@@ -36,32 +36,31 @@ connection.connect(function (err) {
     if (error) throw error;
     console.log(result[0].id);
     initialData = {
-      title: result[0].title,
-      content: result[0].content,
+      name: result[0].name,
+      profession: result[0].profession,
       id: result[0].id,
     };
     console.log("Home page details addition success");
   });
 });
 
-var contacts = [];
+var images = [];
 
 const HomePageDetailsType = new GraphQLObjectType({
   name: "HomePageDetails",
   fields: () => ({
     id: { type: GraphQLID },
-    title: { type: GraphQLString },
-    content: { type: GraphQLString },
+    name: { type: GraphQLString },
+    profession: { type: GraphQLString },
   }),
 });
 
-const ContactType = new GraphQLObjectType({
-  name: "Contact",
+const ImageType = new GraphQLObjectType({
+  name: "Image",
   fields: () => ({
     id: { type: GraphQLID },
     name: { type: GraphQLString },
-    email: { type: GraphQLString },
-    message: { type: GraphQLString },
+    image: { type: GraphQLString },
   }),
 });
 
@@ -82,40 +81,38 @@ const RootQuery = new GraphQLObjectType({
 const Mutation = new GraphQLObjectType({
   name: "Mutation",
   fields: {
-    addContact: {
-      type: ContactType,
+    addImage: {
+      type: ImageType,
       args: {
         name: { type: new GraphQLNonNull(GraphQLString) },
-        email: { type: new GraphQLNonNull(GraphQLString) },
-        message: { type: new GraphQLNonNull(GraphQLString) },
+        image: { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve(parent, args) {
-        let contact = {
+        let image = {
           name: args.name,
-          email: args.email,
-          message: args.message,
-          id: contacts.length + 1,
+          image: args.image,
+          id: images.length + 1,
         };
-        var values = [[args.name, args.email, args.message]];
-        contacts.push(contact);
+        var values = [[args.name, args.image]];
+        images.push(image);
 
-        console.log(contacts);
+        console.log(images);
 
         connection.connect(function (err) {
           if (err) console.log(err);
           connection.query(
-            "INSERT INTO contactdetails (name, email, message) values (?)",
+            "INSERT INTO imagedetails (name, image) values (?)",
             values,
             function (error, result) {
               // console.log(error);
               if (error) throw error;
               console.log(result);
-              console.log("contact details addition success");
+              console.log("Image addition success");
             }
           );
         });
 
-        return contact;
+        return image;
       },
     },
   },
